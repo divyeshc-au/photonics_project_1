@@ -50,7 +50,7 @@ def intensity (z,n_x,n_y,lamd,d,v,t):
 
 tot_frame = 50
 fig, ax = plt.subplots (figsize= (16,9))
-sb.heatmap (intensity_matrices [0])
+#sb.heatmap (intensity_matrices [0])
 
 def init_heatmap ():
     I = intensity ( Z, n_x, n_y, lam , d , v, 0)

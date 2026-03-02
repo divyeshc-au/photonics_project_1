@@ -29,6 +29,9 @@ is_after = 0
 global tot_frame
 tot_frame = 200
 
+global theta
+theta = 0
+
 fig, ax = plt.subplots (figsize= (9,9))
 ax.spines['left'].set_position('center')
 ax.spines['bottom'].set_position('center')
@@ -58,7 +61,13 @@ def init ():
     ax.set_ylim (-1,1)
 
 def update (frame):
-    v_updated = v* np.exp (1j*2*np.pi*frame/tot_frame)
+    v_adv = v* np.exp (1j*2*np.pi*frame/tot_frame)
+    v_updated = v_adv
+    if is_after == 1:
+        c = np.cos (theta)
+        s = np.sin (theta)
+        v_updated[0] = c*v_adv[0] + s*v_adv[1]
+        v_updated[1] = -s*v_adv[0] + c*v_adv[1]
     ax.clear ()
     ax.spines['left'].set_position('center')
     ax.spines['bottom'].set_position('center')
@@ -67,9 +76,7 @@ def update (frame):
     ax.xaxis.set_ticks_position('bottom')
     ax.yaxis.set_ticks_position('left')
     plt.scatter (np.real (v_updated[0]),np.imag (v_updated[0]), color='red', label= 'E_x')
-    plt.scatter (np.real (v_updated[1]*np.exp (-1j*np.pi*alpha*is_after)
-),np.imag (v_updated[1]*np.exp (-1j*np.pi*alpha*is_after)
-), color='blue', label= 'E_y')
+    plt.scatter (np.real (v_updated[1]*np.exp (-1j*np.pi*alpha*is_after) ),np.imag (v_updated[1]*np.exp (-1j*np.pi*alpha*is_after) ), color='blue', label= 'E_y')
     plt.legend ()
     ax.set_xlim (-1,1)
     ax.set_ylim (-1,1)
@@ -82,7 +89,7 @@ is_after = 1
 anim = FuncAnimation (fig, update, init_func= init, frames= tot_frame , repeat=False, interval= 33 )
 anim.save ('vector_in_complex_plane_after_element.mp4', writer= 'ffmpeg')
 
-alpha = 1.2
+alpha = 0.5
 anim = FuncAnimation (fig, update, init_func= init, frames= tot_frame , repeat=False, interval= 33 )
 anim.save ('vector_in_complex_plane_wrong_wavelength.mp4', writer= 'ffmpeg')
 

@@ -1,0 +1,26 @@
+\frametitle{Complex components}
+\section{Complex components}
+\begin{enumerate}
+	\item We plot the complex $x$ and $y$ components on the complex plane.
+\begin{lstlisting}
+    v_adv = v* np.exp (1j*2*np.pi*frame/tot_frame)
+    v_updated = v_adv
+    if is_after == 1:
+        c = np.cos (theta)
+        s = np.sin (theta)
+        v_updated[0] = c*v_adv[0] + s*v_adv[1]
+        v_updated[1] = -s*v_adv[0] + c*v_adv[1]
+    ax.clear ()
+    ax.spines['left'].set_position('center')
+    ax.spines['bottom'].set_position('center')
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+    ax.xaxis.set_ticks_position('bottom')
+    ax.yaxis.set_ticks_position('left')
+    plt.scatter (np.real (v_updated[0]),np.imag (v_updated[0]), color='red', label= 'E_x')
+    plt.scatter (np.real (v_updated[1]*np.exp (-1j*np.pi*alpha*is_after) ),np.imag (v_updated[1]*np.exp (-1j*np.pi*alpha*is_after) ), color='blue', label= 'E_y')
+    plt.legend ()
+    ax.set_xlim (-1,1)
+    ax.set_ylim (-1,1)
+\end{lstlisting}
+\end{enumerate}

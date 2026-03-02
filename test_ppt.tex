@@ -1,0 +1,137 @@
+\documentclass[12pt]{beamer}
+\usetheme{Pittsburgh}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{lstautogobble} % Provides autogobble, which is useful to remove indentation based on first line
+\lstset{ %
+  language=Python,
+  numbers=left,
+  numberstyle=\tiny,
+  stepnumber=1,
+  numbersep=5pt,
+  breaklines=true,
+  autogobble=true, % Removes indentation based on first line
+}
+\author{Divyesh Chauhan (AU25L20002)}
+\title{Half-wave plate simulation}
+\date{$2^{nd}$ March, 2026}  
+\begin{document}
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+\begin{frame}
+\tableofcontents
+\end{frame}
+
+\begin{frame}{Introduction}
+\section{Introduction}
+\begin{enumerate}
+	\item A half wave plate is an optical element made from a bifringent material which for a particular wavelength changes the phase difference between the $x$ and $y$ components of the electric field of light by $\pi$.
+	\item As a result it preserves the intensity of that particular wavelength.
+	\item Due to the change in phase difference between $x$ and $y$ components by $\pi$, left circularly polarised waves become right circularly polarised waves and vice-versa. The linearly polarised waves are flipped about their slow fast axis.
+	\item Conventionally we choose the slow axis to take the negative sign from $e^ {i \pi}$ factor.
+\end{enumerate}
+\end{frame}
+
+\begin{frame}[allowframebreaks, fragile]{Heatmap}
+\section{Heatmap}
+\begin{enumerate}
+	\item The script from which this code is used to produce a video of an evolving heatmap of intensity.
+	\item The function I$\_$1 gives the intensity in the region before the half-wave plate.
+\begin{lstlisting}
+def I_1 (z,v,lamd,t):
+    v_x = v [0]* np.exp (1j*2*np.pi*(c*t-z)/lamd)
+    v_y = v [1]* np.exp (1j*2*np.pi*(c*t-z)/lamd)
+    return np.real (v_x)**2 + np.real (v_y)**2
+\end{lstlisting}
+		\item The function I$\_$2 gives the intensity in the region inside the half-wave plate.
+\begin{lstlisting}
+def I_2 (z,v,lamd,phi_x,phi_y,t):
+    v_x = v [0]* np.exp (1j*2*np.pi*c*t/lamd-phi_x*z)
+    v_y = v [1]* np.exp (1j*2*np.pi*c*t/lamd-phi_y*z)
+    return np.real (v_x)**2 + np.real (v_y)**2 
+\end{lstlisting}
+		\item The function I$\_$3 gives the intensity in the region after the half-wave plate.
+\begin{lstlisting}
+def I_3 (z,v,d,lamd,phi_x,phi_y,t):
+    v_x = v [0]* np.exp ( 1j*2*np.pi*(c*t-z+d)/lamd - phi_x*d )
+    v_y = v [1]* np.exp ( 1j*2*np.pi*(c*t-z+d)/lamd - phi_y*d )
+    return np.real (v_x)**2 + np.real (v_y)**2
+\end{lstlisting}
+	\item Using boolean operations the function 'intensity' produces a piecewise function to calculate the square of the real amplitude.
+\begin{lstlisting}
+def intensity (z,n_x,n_y,lamd,d,v,t):
+    phi_x = 1j*2*np.pi*n_x/lamd
+    phi_y = 1j*2*np.pi*n_y/lamd
+    return (z<=0)*I_1 (z,v,lamd,t) + np.logical_and (z>0,z<d)*I_2 (z,v,lamd,phi_x,phi_y,t) + (z>=d)* I_3 (z,v,d,lamd,phi_x,phi_y,t) 
+\end{lstlisting}
+	\item The rotation angle doesn't impact the intensity so we will ignore it.
+\end{enumerate}
+\end{frame}
+
+\begin{frame}[allowframebreaks, fragile]{Real components}
+\section{Real components}
+\begin{enumerate}
+	\item We plot the real vector on the graph and see how it evolves. From this we can see what happens to handedness, direction of polarization etc.
+	\item Let $\lambda$ be the wavelength such that with ---
+	$$\lambda\ =\ \frac{d}{2\ \Delta n}$$
+	\item Define $\alpha = \frac{\lambda}{\lambda^\prime}$ where $\lambda^\prime$ is the arbitrary wavelength. Then---
+	$$\frac{2 \pi d}{\lambda^\prime} = \pi \alpha$$
+	\item This relationship will be utilised in this fragment of code and the next one as well.
+\begin{lstlisting}
+def update (frame):
+    v_updated = v* np.exp (1j*2*np.pi*frame/tot_frame)
+    c = np.cos (theta)
+    s = np.sin (theta)
+    ax.clear ()
+    ax.spines['left'].set_position('center')
+    ax.spines['bottom'].set_position('center')
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+    ax.xaxis.set_ticks_position('bottom')
+    ax.yaxis.set_ticks_position('left')
+    if is_after == 1:
+        plt.scatter (np.real (c*v_updated[0] + s*v_updated[1]), np.real ((-s*v_updated[0] + c*v_updated[1]) * np.exp (-1j*np.pi*alpha) ), color='red')
+    else:
+        plt.scatter (np.real (v_updated[0]), np.real (v_updated[1]) , color='red')
+    ax.set_xlim (-1,1)
+    ax.set_ylim (-1,1)
+\end{lstlisting}	
+\end{enumerate}
+\end{frame}
+
+\begin{frame}[allowframebreaks, fragile]{Complex components}
+\section{Complex components}
+\begin{enumerate}
+	\item We plot the complex $x$ and $y$ components on the complex plane.
+\begin{lstlisting}
+    v_adv = v* np.exp (1j*2*np.pi*frame/tot_frame)
+    v_updated = v_adv
+    if is_after == 1:
+        c = np.cos (theta)
+        s = np.sin (theta)
+        v_updated[0] = c*v_adv[0] + s*v_adv[1]
+        v_updated[1] = -s*v_adv[0] + c*v_adv[1]
+    ax.clear ()
+    ax.spines['left'].set_position('center')
+    ax.spines['bottom'].set_position('center')
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+    ax.xaxis.set_ticks_position('bottom')
+    ax.yaxis.set_ticks_position('left')
+    plt.scatter (np.real (v_updated[0]),np.imag (v_updated[0]), color='red', label= 'E_x')
+    plt.scatter (np.real (v_updated[1]*np.exp (-1j*np.pi*alpha*is_after) ),np.imag (v_updated[1]*np.exp (-1j*np.pi*alpha*is_after) ), color='blue', label= 'E_y')
+    plt.legend ()
+    ax.set_xlim (-1,1)
+    ax.set_ylim (-1,1)
+\end{lstlisting}
+\end{enumerate}
+\end{frame}
+
+\end{document}
